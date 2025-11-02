@@ -1,0 +1,5 @@
+{
+  "name": "Huffman Compression UI",
+  "description": "A modern, minimal web interface to simulate Huffman text file compression, allowing users to upload a file and view simulated compression statistics.",
+  "requestFramePermissions": []
+}
