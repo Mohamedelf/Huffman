@@ -1,16 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
 import FileUploader from './components/FileUploader';
-import CompressionResult from './components/CompressionResult';
-
-// --- TYPE DEFINITIONS ---
-export interface CompressionResultData {
-  originalSize: number;
-  compressedSize: number;
-  ratio: number;
-  compressedData: string;
-  fileName: string;
-}
 
 // --- HELPER FUNCTIONS ---
 export const formatBytes = (bytes: number, decimals = 2): string => {
@@ -29,53 +19,64 @@ const LoaderIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     </svg>
 );
 
-
 const App: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
-    const [result, setResult] = useState<CompressionResultData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleFileSelect = useCallback((selectedFile: File) => {
         setFile(selectedFile);
-        setResult(null); // Reset result when a new file is selected
+        setError(null);
     }, []);
 
     const handleFileRemove = useCallback(() => {
         setFile(null);
-        setResult(null);
+        setError(null);
     }, []);
 
-    const handleCompress = useCallback(async () => {
+    const handleCompressAndDownload = useCallback(async () => {
         if (!file) return;
 
         setIsLoading(true);
-        setResult(null);
+        setError(null);
 
-        // Simulate network delay and compression time
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const formData = new FormData();
+        formData.append('textFile', file);
 
-        // --- START SIMULATION LOGIC ---
-        // TODO: Replace this block with a call to the C backend API
-        const originalSize = file.size;
-        
-        // Randomize compression ratio for simulation (between 40% and 75% reduction)
-        const reductionRatio = Math.random() * (0.75 - 0.40) + 0.40;
-        const compressedSize = Math.round(originalSize * (1 - reductionRatio));
-        
-        // Generate fake binary data for preview
-        const compressedData = Array.from({ length: 200 }, () => Math.round(Math.random())).join('');
+        try {
+            // This endpoint should be your Node.js server, which will call the C binary
+            const response = await fetch('http://localhost:8080/compress', {
+                method: 'POST',
+                body: formData,
+            });
 
-        const compressionResult: CompressionResultData = {
-            originalSize,
-            compressedSize,
-            ratio: reductionRatio,
-            compressedData,
-            fileName: file.name
-        };
-        // --- END SIMULATION LOGIC ---
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
 
-        setResult(compressionResult);
-        setIsLoading(false);
+            // The backend now sends the compressed file directly
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            const [fileName] = file.name.split('.');
+            a.download = `${fileName}.huff`;
+            
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            console.error("Compression request failed:", errorMessage);
+            setError(`Compression failed. Please ensure the backend is running. Details: ${errorMessage}`);
+        } finally {
+            setIsLoading(false);
+        }
     }, [file]);
 
     return (
@@ -83,7 +84,7 @@ const App: React.FC = () => {
             <main className="w-full max-w-2xl mx-auto">
                 <header className="text-center mb-8">
                     <h1 className="text-4xl font-bold text-slate-900">Huffman Compression Tool</h1>
-                    <p className="text-slate-600 mt-2">Upload a .txt file to simulate Huffman compression.</p>
+                    <p className="text-slate-600 mt-2">Upload a .txt file, and my C program will compress it for you.</p>
                 </header>
 
                 <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md space-y-6">
@@ -94,7 +95,7 @@ const App: React.FC = () => {
                     />
 
                     <button
-                        onClick={handleCompress}
+                        onClick={handleCompressAndDownload}
                         disabled={!file || isLoading}
                         className="w-full flex items-center justify-center bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-300"
                     >
@@ -103,16 +104,19 @@ const App: React.FC = () => {
                                 <LoaderIcon className="animate-spin mr-2 h-5 w-5" />
                                 Compressing...
                             </>
-                        ) : 'Compress File'}
+                        ) : 'Compress & Download File'}
                     </button>
-
-                    {result && (
-                        <CompressionResult data={result} />
+                    
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                            <strong className="font-bold">Error: </strong>
+                            <span className="block sm:inline">{error}</span>
+                        </div>
                     )}
                 </div>
                 
                 <footer className="text-center mt-8 text-sm text-slate-500">
-                    <p>This is a UI simulation. The actual compression logic is not implemented.</p>
+                    <p>UI by Mohamed El Fene - Backend powered by Node.js + C</p>
                 </footer>
             </main>
         </div>
