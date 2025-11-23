@@ -1,4 +1,3 @@
-
 const express = require('express');
 const multer = require('multer');
 const { execFile } = require('child_process');
@@ -7,6 +6,7 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
+// Important pour Render : utiliser le port donné par l'environnement
 const PORT = process.env.PORT || 8080;
 
 // --- Configuration ---
@@ -15,7 +15,6 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 
 // Configure Multer for file uploads
-// This will save uploaded files to a directory named 'uploads'
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
@@ -34,9 +33,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Determine the C binary executable name based on the OS
-// Make sure you compile your C code and place the executable in the root of this Node.js project
 const huffmanExecutable = process.platform === 'win32' ? 'huffman.exe' : './huffman';
-
 
 // --- Helper function for cleanup ---
 const cleanupFiles = (files) => {
@@ -53,7 +50,7 @@ const cleanupFiles = (files) => {
 
 /**
  * @route POST /compress
- * @desc Receives a text file, compresses it using the C binary, and returns the compressed file.
+ * @desc Reçoit un fichier texte, le compresse via le binaire C, et renvoie le fichier .huff.
  */
 app.post('/compress', upload.single('textFile'), (req, res) => {
     if (!req.file) {
@@ -61,29 +58,56 @@ app.post('/compress', upload.single('textFile'), (req, res) => {
     }
 
     const inputPath = req.file.path;
-    // Create a unique output path in the same directory
     const outputPath = `${inputPath}.huff`;
     const outputFilename = `${req.file.originalname.split('.')[0]}.huff`;
 
-    // Execute the C compression program
-    // Arguments: -c <input_path> <output_path>
+    // Arguments: -c <input> <output>
     execFile(huffmanExecutable, ['-c', inputPath, outputPath], (error, stdout, stderr) => {
         if (error) {
             console.error(`execFile error: ${error.message}`);
-            cleanupFiles([inputPath, outputPath]); // Cleanup on error
+            cleanupFiles([inputPath, outputPath]);
             return res.status(500).send(`Compression failed: ${stderr || error.message}`);
         }
         
-        if (stderr) {
-            console.warn(`Compression stderr: ${stderr}`);
+        res.download(outputPath, outputFilename, (err) => {
+            if (err) console.error('Download error:', err);
+            cleanupFiles([inputPath, outputPath]);
+        });
+    });
+});
+
+/**
+ * @route POST /decompress
+ * @desc Reçoit un fichier .huff, le décompresse via le binaire C, et renvoie le texte.
+ */
+app.post('/decompress', upload.single('textFile'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+
+    const inputPath = req.file.path;
+    // On tente de retirer l'extension .huff pour le nom de sortie
+    let outputFilename = req.file.originalname.replace('.huff', '');
+    // Si le nom n'a pas changé (pas de .huff), on ajoute .txt par sécurité
+    if (outputFilename === req.file.originalname) {
+        outputFilename += '.txt';
+    } else if (!outputFilename.includes('.')) {
+        // Si après retrait de .huff il n'y a plus d'extension, on remet .txt
+        outputFilename += '.txt';
+    }
+    
+    const outputPath = path.join(path.dirname(inputPath), `decompressed-${Date.now()}.txt`);
+
+    // Arguments: -d <input> <output>
+    execFile(huffmanExecutable, ['-d', inputPath, outputPath], (error, stdout, stderr) => {
+        if (error) {
+            console.error(`execFile error: ${error.message}`);
+            cleanupFiles([inputPath, outputPath]);
+            return res.status(500).send(`Decompression failed: ${stderr || error.message}`);
         }
 
-        // Send the compressed file back to the client for download
         res.download(outputPath, outputFilename, (err) => {
-            if (err) {
-                console.error('Download error:', err);
-            }
-            // Cleanup temporary files after download (or if download fails)
+            if (err) console.error('Download error:', err);
             cleanupFiles([inputPath, outputPath]);
         });
     });
@@ -91,12 +115,8 @@ app.post('/compress', upload.single('textFile'), (req, res) => {
 
 // --- Start Server ---
 app.listen(PORT, () => {
-    console.log(`✅ Server is running on http://localhost:${PORT}`);
-    console.log(`   Waiting for file uploads...`);
-    // Check if the executable exists
+    console.log(`✅ Server is running on port ${PORT}`);
     if (!fs.existsSync(huffmanExecutable.replace('./', ''))) {
          console.warn(`\n⚠️  WARNING: Huffman executable "${huffmanExecutable}" not found.`);
-         console.warn(`   Make sure you have compiled your C code and placed the executable`);
-         console.warn(`   in the same directory as this server file.\n`);
     }
 });

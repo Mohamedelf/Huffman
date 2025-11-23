@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { formatBytes } from '../App';
 
 // --- SVG ICONS ---
@@ -64,18 +63,19 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, selectedFile,
         setIsDragging(false);
 
         const file = e.dataTransfer.files?.[0];
-        if (file && file.type === 'text/plain') {
+        // Validation mise à jour pour accepter .txt ET .huff
+        if (file && (file.type === 'text/plain' || file.name.endsWith('.huff'))) {
             onFileSelect(file);
         } else {
-            // Optional: Show an error for invalid file types
-            alert("Please upload a .txt file.");
+            alert("Please upload a .txt or .huff file.");
         }
     };
     
     return (
         <div>
             <label htmlFor="file-upload" className="sr-only">Choose a file</label>
-            <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".txt" />
+            {/* Input accept mis à jour */}
+            <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".txt,.huff" />
             
             {!selectedFile ? (
                 <div
@@ -92,7 +92,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, selectedFile,
                         <p className="mt-2 text-sm text-slate-600">
                             <span className="font-semibold text-blue-600">Click to upload</span> or drag and drop
                         </p>
-                        <p className="text-xs text-slate-500">TXT files only</p>
+                        <p className="text-xs text-slate-500">TXT or HUFF files</p>
                     </div>
                 </div>
             ) : (

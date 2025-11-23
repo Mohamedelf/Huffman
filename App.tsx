@@ -22,10 +22,17 @@ const App: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [mode, setMode] = useState<'compress' | 'decompress'>('compress');
 
     const handleFileSelect = useCallback((selectedFile: File) => {
         setFile(selectedFile);
         setError(null);
+        // Détection automatique du mode selon l'extension
+        if (selectedFile.name.endsWith('.huff')) {
+            setMode('decompress');
+        } else {
+            setMode('compress');
+        }
     }, []);
 
     const handleFileRemove = useCallback(() => {
@@ -33,7 +40,7 @@ const App: React.FC = () => {
         setError(null);
     }, []);
 
-    const handleCompressAndDownload = useCallback(async () => {
+    const handleProcess = useCallback(async () => {
         if (!file) return;
 
         setIsLoading(true);
@@ -42,10 +49,12 @@ const App: React.FC = () => {
         const formData = new FormData();
         formData.append('textFile', file);
 
+        // Choix dynamique de l'URL et de la route
+        const endpoint = mode === 'compress' ? '/compress' : '/decompress';
+        const baseUrl = 'https://huffman-backend.onrender.com'; 
+
         try {
-            // CORRECTION ICI : Ajout de "/compress" à la fin de l'URL
-            // Remplace l'URL ci-dessous par la VRAIE URL de ton projet Render si elle est différente
-            const response = await fetch('https://huffman-backend.onrender.com/compress', {
+            const response = await fetch(`${baseUrl}${endpoint}`, {
                 method: 'POST',
                 body: formData,
             });
@@ -55,15 +64,22 @@ const App: React.FC = () => {
                 throw new Error(`Server error: ${response.status} - ${errorText}`);
             }
 
-            // The backend now sends the compressed file directly
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
 
-            const [fileName] = file.name.split('.');
-            a.download = `${fileName}.huff`;
+            // Gestion du nom de fichier selon le mode
+            if (mode === 'compress') {
+                const [fileName] = file.name.split('.');
+                a.download = `${fileName}.huff`;
+            } else {
+                // Retirer .huff si présent, et s'assurer d'une extension texte
+                let name = file.name.replace('.huff', '');
+                if (!name.includes('.')) name += '.txt';
+                a.download = name;
+            }
             
             document.body.appendChild(a);
             a.click();
@@ -72,22 +88,45 @@ const App: React.FC = () => {
 
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-            console.error("Compression request failed:", errorMessage);
-            setError(`Compression failed. Please ensure the backend is running. Details: ${errorMessage}`);
+            setError(`${mode === 'compress' ? 'Compression' : 'Decompression'} failed. Backend details: ${errorMessage}`);
         } finally {
             setIsLoading(false);
         }
-    }, [file]);
+    }, [file, mode]);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 text-slate-800">
             <main className="w-full max-w-2xl mx-auto">
                 <header className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-slate-900">Huffman Compression Tool</h1>
-                    <p className="text-slate-600 mt-2">Upload a .txt file, and my C program will compress it for you.</p>
+                    <h1 className="text-4xl font-bold text-slate-900">Huffman Tool</h1>
+                    <p className="text-slate-600 mt-2">
+                        {mode === 'compress' 
+                            ? "Upload a .txt file to compress it." 
+                            : "Upload a .huff file to decompress it."}
+                    </p>
                 </header>
 
                 <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md space-y-6">
+                    {/* Boutons de choix de mode */}
+                    <div className="flex justify-center space-x-4 mb-4">
+                        <button 
+                            onClick={() => { setMode('compress'); setFile(null); setError(null); }}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                mode === 'compress' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'text-slate-500 hover:bg-slate-100'
+                            }`}
+                        >
+                            Compression
+                        </button>
+                        <button 
+                            onClick={() => { setMode('decompress'); setFile(null); setError(null); }}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                mode === 'decompress' ? 'bg-green-100 text-green-700 border border-green-200' : 'text-slate-500 hover:bg-slate-100'
+                            }`}
+                        >
+                            Décompression
+                        </button>
+                    </div>
+
                     <FileUploader
                         onFileSelect={handleFileSelect}
                         selectedFile={file}
@@ -95,16 +134,20 @@ const App: React.FC = () => {
                     />
 
                     <button
-                        onClick={handleCompressAndDownload}
+                        onClick={handleProcess}
                         disabled={!file || isLoading}
-                        className="w-full flex items-center justify-center bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-300"
+                        className={`w-full flex items-center justify-center font-semibold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-300 disabled:bg-slate-300 disabled:cursor-not-allowed ${
+                            mode === 'compress' 
+                            ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white' 
+                            : 'bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white'
+                        }`}
                     >
                         {isLoading ? (
                             <>
                                 <LoaderIcon className="animate-spin mr-2 h-5 w-5" />
-                                Compressing...
+                                Processing...
                             </>
-                        ) : 'Compress & Download File'}
+                        ) : (mode === 'compress' ? 'Compress & Download' : 'Decompress & Download')}
                     </button>
                     
                     {error && (
