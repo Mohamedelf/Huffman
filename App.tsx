@@ -159,7 +159,7 @@ const App: React.FC = () => {
                 </div>
                 
                 <footer className="text-center mt-8 text-sm text-slate-500">
-                    <p>UI by Mohamed El Fene - Backend powered by Node.js + C</p>
+                    <p>Backend powered by Node.js + UI are Vibe coded - Backend C by Mohamed Elfene</p>
                 </footer>
             </main>
         </div>
