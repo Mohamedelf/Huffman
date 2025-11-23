@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import FileUploader from './components/FileUploader';
 
@@ -44,8 +43,9 @@ const App: React.FC = () => {
         formData.append('textFile', file);
 
         try {
-            // This endpoint should be your Node.js server, which will call the C binary
-            const response = await fetch('http://localhost:8080/compress', {
+            // CORRECTION ICI : Ajout de "/compress" à la fin de l'URL
+            // Remplace l'URL ci-dessous par la VRAIE URL de ton projet Render si elle est différente
+            const response = await fetch('https://huffman-backend.onrender.com/compress', {
                 method: 'POST',
                 body: formData,
             });
