@@ -98,7 +98,7 @@ const App: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center p-4 text-slate-800">
             <main className="w-full max-w-2xl mx-auto">
                 <header className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-slate-900">Huffman Tool</h1>
+                    <h1 className="text-4xl font-bold text-slate-900">Mohamed Elfene Compression's Tool</h1>
                     <p className="text-slate-600 mt-2">
                         {mode === 'compress' 
                             ? "Upload a .txt file to compress it." 
