@@ -15,7 +15,7 @@
 #include <string.h>
 #include <errno.h>
 
-/* ---------- Helper: écriture / lecture d'entiers 64-bit en big-endian ---------- */
+/*Helper: écriture / lecture d'entiers 64-bit en big-endian */
 
 static int write_u64_be(FILE *f, uint64_t v) {
     unsigned char b[8];
@@ -36,7 +36,7 @@ static int read_u64_be(FILE *f, uint64_t *out_v) {
     return 0;
 }
 
-/* ---------- BitWriter implementation ---------- */
+/*BitWriter implementation*/
 
 BitWriter* bw_create(FILE *out) {
     if (!out) return NULL;
@@ -99,7 +99,7 @@ int bw_write_bits_from_string(BitWriter *bw, const char *bits) {
     return 0;
 }
 
-/* ---------- BitReader implementation ---------- */
+/*BitReader implementation*/
 
 BitReader* br_create(FILE *in) {
     if (!in) return NULL;
@@ -147,7 +147,7 @@ void br_destroy(BitReader *br) {
     free(br);
 }
 
-/* ---------- Header (freq table) ---------- */
+/*Header (freq table)*/
 
 int write_freq_header(FILE *out, uint64_t total_symbols, const unsigned long freq_table[256]) {
     if (!out || !freq_table) return -1;
@@ -180,7 +180,7 @@ int read_freq_header(FILE *in, uint64_t *out_total_symbols, unsigned long freq_t
     return 0;
 }
 
-/* ---------- Compression haut niveau ---------- */
+/*Compression haut niveau*/
 
 int compress_file(const char *input_path, const char *output_path) {
     if (!input_path || !output_path) return -1;
@@ -280,7 +280,7 @@ int compress_file(const char *input_path, const char *output_path) {
     return 0;
 }
 
-/* ---------- Décompression haut-niveau ---------- */
+/*Décompression*/
 
 /* Décodage : lit bits et suit l'arbre jusqu'à feuille, écrit le symbole, répète
  * jusqu'à total_symbols symboles produits.

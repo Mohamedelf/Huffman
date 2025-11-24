@@ -9,8 +9,6 @@
  *
  * Ce fichier utilise l'API du tas définie dans heap.h pour sélectionner
  * les deux noeuds minima à chaque étape.
- *
- * Assure-toi d'avoir dans le projet : heap.h / heap.c (implémentation TasMin).
  */
 
 #include "huffman.h"
@@ -220,7 +218,7 @@ void liberer_codes(char **codes) {
     free(codes);
 }
 
-/* ---------- Comptage de fréquences depuis un fichier ---------- */
+/*Comptage de fréquences depuis un fichier  */
 
 int compter_frequences_fichier(const char *path, unsigned long freq_table[256]) {
     if (!path || !freq_table) return -1;
@@ -249,7 +247,7 @@ int compter_frequences_fichier(const char *path, unsigned long freq_table[256]) 
     return 0;
 }
 
-/* ---------- Affichage debug de l'arbre ---------- */
+/*Affichage debug de l'arbre  */
 
 void afficher_arbre_recursive(const Noeud *node, int depth) {
     if (!node) return;

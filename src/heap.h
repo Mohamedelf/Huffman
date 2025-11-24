@@ -1,4 +1,4 @@
-#ifndef HEAP_H
+#ifndef HEAP_H /*Ces lignes empêchent le compilateur d'inclure ce fichier plusieurs fois (ce qui causerait des erreurs de redéfinition)*/
 #define HEAP_H
 
 /* declaration du Noeud (la structure du Noeud est défini dans huffman.h) */

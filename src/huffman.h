@@ -1,4 +1,4 @@
-#ifndef HUFFMAN_H
+#ifndef HUFFMAN_H  /*Ces lignes empêchent le compilateur d'inclure ce fichier plusieurs fois (ce qui causerait des erreurs de redéfinition)*/
 #define HUFFMAN_H
 
 #include <stddef.h> /* pour size_t */
@@ -16,7 +16,7 @@ typedef struct Noeud {
 } Noeud;
 
 
-/* ----------------- Fonctions principales ----------------- */
+/* Fonctions principales */
 
 /* Crée un nouveau Noeud (feuille si left==right==NULL, sinon noeud interne).
  * Retourne NULL si l'allocation échoue.

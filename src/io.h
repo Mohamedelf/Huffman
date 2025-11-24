@@ -15,7 +15,7 @@
  * - heap.h (utilisé indirectement par huffman.c)
  */
 
-/* ---------------- BitWriter / BitReader ----------------- */
+/*BitWriter / BitReader */
 
 /* BitWriter : permet d'écrire des bits dans un FILE* (bufferisé par octet). */
 typedef struct BitWriter {
@@ -51,7 +51,7 @@ int bw_write_bits_from_string(BitWriter *bw, const char *bits);
  */
 long long br_read_bits(BitReader *br, int count);
 
-/* ---------------- Header / fréquences ----------------- */
+/*Header / fréquences*/
 
 /* Écrit l'en-tête de fréquence sur le flux (magic + total_symbols + 256×uint64 BE).
  * total_symbols = somme des fréquences.
@@ -64,7 +64,7 @@ int write_freq_header(FILE *out, uint64_t total_symbols, const unsigned long fre
  */
 int read_freq_header(FILE *in, uint64_t *out_total_symbols, unsigned long freq_table[256]);
 
-/* ---------------- Compression / Décompression haut-niveau ----------------- */
+/*Compression / Décompression haut-niveau*/
 
 /* compress_file :
  * - lit le fichier source, compte les fréquences,

@@ -17,7 +17,7 @@
 #include "huffman.h"
 
 
-/* --- fonctions utilitaires internes --- */
+/* fonctions utilitaires internes */
 
 /* échange deux pointeurs de Noeud */
 static void swap_noeuds(Noeud **a, Noeud **b) {
@@ -41,7 +41,7 @@ static inline int parent_idx(int i) { return (i - 1) / 2; }
 static inline int gauche_idx(int i) { return 2 * i + 1; }
 static inline int droite_idx(int i) { return 2 * i + 2; }
 
-/* --- API publique --- */
+/*API publique*/
 
 TasMin* creer_tas_min(int capacite_initiale) {
     TasMin *tas = (TasMin*) malloc(sizeof(TasMin));
