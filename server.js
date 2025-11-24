@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 8080;
 
 // --- Configuration ---
 
-// Enable CORS for all routes to allow requests from the frontend
+// Enable CORS for all routes (utile si dev local, moins critique en prod sur même origine)
 app.use(cors());
 
 // Configure Multer for file uploads
@@ -111,6 +111,17 @@ app.post('/decompress', upload.single('textFile'), (req, res) => {
             cleanupFiles([inputPath, outputPath]);
         });
     });
+});
+
+// --- SERVING FRONTEND (AJOUT CRITIQUE) ---
+
+// 1. Servir les fichiers statiques (JS, CSS) générés par Vite dans 'dist'
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// 2. Route "Catch-all" : renvoyer index.html pour n'importe quelle autre requête
+// Cela permet à React Router de gérer l'affichage sans erreur 404
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // --- Start Server ---

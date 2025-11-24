@@ -16,13 +16,19 @@ RUN npm install
 # Copier tout le reste du projet
 COPY . .
 
+# ----------------------------------------
+# AJOUT CRITIQUE : Construire le frontend React
+# Cela crée le dossier /dist nécessaire au serveur
+# ----------------------------------------
+RUN npm run build
+
 # Compiler le programme C (utilise ton Makefile)
 RUN make
 
 # Créer le dossier pour les uploads s'il n'existe pas
 RUN mkdir -p uploads
 
-# Exposer le port (Render utilise souvent un port dynamique)
+# Exposer le port (Render utilise souvent un port dynamique, mais 8080 est standard)
 EXPOSE 8080
 
 # Lancer le serveur
