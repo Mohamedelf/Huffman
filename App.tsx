@@ -1,16 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import FileUploader from './components/FileUploader';
 
-// --- HELPER FUNCTIONS ---
-export const formatBytes = (bytes: number, decimals = 2): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-};
-
 // --- SVG LOADER ICON ---
 const LoaderIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -51,6 +41,8 @@ const App: React.FC = () => {
 
         // Choix dynamique de l'URL et de la route
         const endpoint = mode === 'compress' ? '/compress' : '/decompress';
+        // En production sur Render, on peut souvent utiliser un chemin relatif si le backend sert le frontend
+        // Sinon, gardez l'URL complète de votre backend.
         const baseUrl = 'https://huffman-backend.onrender.com'; 
 
         try {

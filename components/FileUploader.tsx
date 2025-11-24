@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { formatBytes } from '../App';
+// CORRECTION : Import depuis le nouveau fichier utils
+import { formatBytes } from '../utils';
 
 // --- SVG ICONS ---
 const UploadIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
